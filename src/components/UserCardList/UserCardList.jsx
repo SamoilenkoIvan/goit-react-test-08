@@ -1,26 +1,39 @@
 import React, { useEffect, useState } from 'react';
+import './UserCardList.css';
+import avatarImage from '../images/picture21.png';
+import goit from '../images/Vector (1).png';
+
 
 function UserCard({ user, onUpdateUser }) {
-  const [following, setFollowing] = useState(user.following);
+  const [following, setFollowing] = useState(() => {
+    const storedFollowing = localStorage.getItem(`following_${user.id}`);
+    return storedFollowing ? JSON.parse(storedFollowing) : user.following;
+  });
 
   const toggleFollowing = () => {
-    setFollowing(!following);
-    user.followers = following ? user.followers-1 : user.followers+1;
-    console.log(user.followers);
-    onUpdateUser(user);
+    const updatedFollowing = !following;
+    setFollowing(updatedFollowing);
+    localStorage.setItem(`following_${user.id}`, updatedFollowing);
+
+    const updatedUser = { ...user };
+    updatedUser.following = updatedFollowing;
+    updatedUser.followers += updatedFollowing ? 1 : -1;
+    onUpdateUser(updatedUser);
   };
 
   return (
     <div className="card">
-      <img src={user.avatar} alt={user.user} />
-      <p>{user.user}</p>
-      <p>{user.tweets} tweets </p>
-      <p>{user.followers} followers</p>
+      <img className="card__goit" src={goit} alt="Avatar"/>
+      <img id="logo" src={avatarImage} alt="Avatar"/>
+      <img className='card__img' src={user.avatar} alt={user.user} />
+      {/* <h3>{user.user}</h3> */}
+      <p className="card__tweets">{user.tweets} TWEETS</p>
+      <p className="card__followers">{user.followers} FOLLOWERS</p>
       <button
         className={following ? 'follow-button following' : 'follow-button'}
         onClick={toggleFollowing}
       >
-        {following ? 'Following' : 'Follow'}
+        {following ? 'FOLLOWING' : 'FOLLOW'}
       </button>
     </div>
   );
@@ -28,6 +41,7 @@ function UserCard({ user, onUpdateUser }) {
 
 function UserCardList() {
   const [users, setUsers] = useState([]);
+  const [visibleUsers, setVisibleUsers] = useState(6);
 
   useEffect(() => {
     getUsers();
@@ -54,19 +68,32 @@ function UserCardList() {
       });
       const data = await response.json();
       console.log('User updated:', data);
+      setUsers((prevUsers) =>
+        prevUsers.map((user) => (user.id === data.id ? data : user))
+      );
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
+  const loadMore = () => {
+    setVisibleUsers((prevVisibleUsers) => prevVisibleUsers + 6);
+  };
+
   return (
-    <div id="user-cards">
-      {users.map((user) => (
-        <UserCard key={user.id} user={user} onUpdateUser={updateUser} />
-      ))}
+    <div>
+      <div className="user-cards">
+        {users.slice(0, visibleUsers).map((user) => (
+          <UserCard key={user.id} user={user} onUpdateUser={updateUser} />
+        ))}
+      </div>
+      {visibleUsers < users.length && (
+        <button className="load-more-button" onClick={loadMore}>
+          Load More
+        </button>
+      )}
     </div>
   );
 }
 
 export default UserCardList;
-
