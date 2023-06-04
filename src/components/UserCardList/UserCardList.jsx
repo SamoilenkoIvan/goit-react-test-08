@@ -41,7 +41,7 @@ function UserCardList() {
   };
 
   const loadMore = () => {
-    setVisibleUsers((prevVisibleUsers) => prevVisibleUsers + 6);
+    setVisibleUsers((prevVisibleUsers) => prevVisibleUsers + 4);
   };
 
   return (
